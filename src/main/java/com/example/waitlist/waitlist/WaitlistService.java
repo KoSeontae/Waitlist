@@ -9,6 +9,9 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.waitlist.global.error.BusinessException;
 import com.example.waitlist.global.error.ErrorCode;
 import com.example.waitlist.global.time.DbTime;
+import com.example.waitlist.reservation.Reservation;
+import com.example.waitlist.reservation.ReservationDtos.ReservationResponse;
+import com.example.waitlist.reservation.ReservationRepository;
 import com.example.waitlist.slot.Slot;
 import com.example.waitlist.slot.SlotOccupancy;
 import com.example.waitlist.slot.SlotService;
@@ -22,6 +25,8 @@ import lombok.RequiredArgsConstructor;
 public class WaitlistService {
 
 	private final WaitlistEntryRepository waitlistEntryRepository;
+	private final ReservationRepository reservationRepository;
+	private final SuccessionService successionService;
 	private final SlotService slotService;
 	private final SlotOccupancy occupancy;
 	private final UserRepository userRepository;
@@ -64,6 +69,43 @@ public class WaitlistService {
 			throw new BusinessException(ErrorCode.INVALID_STATE);
 		}
 		entry.resolve(WaitlistStatus.CANCELED, dbTime.now());
+	}
+
+	@Transactional
+	public ReservationResponse accept(Long entryId, Long userId) {
+		WaitlistEntry entry = findOwned(entryId, userId);
+		switch (entry.getStatus()) {
+			case ACCEPTED -> {
+				return reservationRepository.findByWaitlistEntryId(entryId).map(ReservationResponse::from)
+						.orElseThrow(() -> new BusinessException(ErrorCode.INVALID_STATE));
+			}
+			case EXPIRED -> throw new BusinessException(ErrorCode.OFFER_EXPIRED);
+			case OFFERED -> {
+			}
+			default -> throw new BusinessException(ErrorCode.INVALID_STATE);
+		}
+
+		Instant now = dbTime.now();
+		if (!now.isBefore(entry.getExpiresAt())) {
+			throw new BusinessException(ErrorCode.OFFER_EXPIRED);
+		}
+		entry.resolve(WaitlistStatus.ACCEPTED, now);
+		Reservation reservation = reservationRepository
+				.save(Reservation.confirm(entry.getSlot(), entry.getUser(), entry.getId(), now));
+		return ReservationResponse.from(reservation);
+	}
+
+	@Transactional
+	public void decline(Long entryId, Long userId) {
+		WaitlistEntry entry = findOwned(entryId, userId);
+		if (entry.getStatus() == WaitlistStatus.CANCELED) {
+			return;
+		}
+		if (entry.getStatus() != WaitlistStatus.OFFERED) {
+			throw new BusinessException(ErrorCode.INVALID_STATE);
+		}
+		entry.resolve(WaitlistStatus.CANCELED, dbTime.now());
+		successionService.fillVacancies(entry.getSlot());
 	}
 
 	@Transactional(readOnly = true)

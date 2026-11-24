@@ -23,6 +23,7 @@ public enum ErrorCode {
 	WAITLIST_FULL(HttpStatus.CONFLICT, "대기 인원이 가득 찼습니다"),
 	CANCEL_DEADLINE_PASSED(HttpStatus.CONFLICT, "취소 가능 시점이 지났습니다"),
 	INVALID_STATE(HttpStatus.CONFLICT, "현재 상태에서는 처리할 수 없습니다"),
+	OFFER_EXPIRED(HttpStatus.CONFLICT, "예약 기회가 만료되었습니다"),
 	CONFLICT(HttpStatus.CONFLICT, "요청이 현재 상태와 충돌합니다");
 
 	private final HttpStatus status;

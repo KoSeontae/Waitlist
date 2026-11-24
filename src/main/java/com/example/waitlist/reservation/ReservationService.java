@@ -14,6 +14,7 @@ import com.example.waitlist.slot.Slot;
 import com.example.waitlist.slot.SlotOccupancy;
 import com.example.waitlist.slot.SlotService;
 import com.example.waitlist.user.UserRepository;
+import com.example.waitlist.waitlist.SuccessionService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -24,6 +25,7 @@ public class ReservationService {
 	private final ReservationRepository reservationRepository;
 	private final SlotService slotService;
 	private final SlotOccupancy occupancy;
+	private final SuccessionService successionService;
 	private final UserRepository userRepository;
 	private final DbTime dbTime;
 
@@ -65,6 +67,7 @@ public class ReservationService {
 			throw new BusinessException(ErrorCode.CANCEL_DEADLINE_PASSED);
 		}
 		reservation.cancel(CanceledBy.USER, now);
+		successionService.fillVacancies(reservation.getSlot());
 	}
 
 	@Transactional(readOnly = true)

@@ -16,7 +16,7 @@ public final class ReservationDtos {
 			Instant createdAt,
 			Instant canceledAt) {
 
-		static ReservationResponse from(Reservation reservation) {
+		public static ReservationResponse from(Reservation reservation) {
 			return new ReservationResponse(reservation.getId(), reservation.getSlot().getId(),
 					reservation.getSlot().getTitle(), reservation.getSlot().getStartAt(), reservation.getStatus(),
 					reservation.getCreatedAt(), reservation.getCanceledAt());
