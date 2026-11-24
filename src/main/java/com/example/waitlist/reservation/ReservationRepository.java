@@ -3,9 +3,13 @@ package com.example.waitlist.reservation;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 
 public interface ReservationRepository extends JpaRepository<Reservation, Long> {
+
+	@EntityGraph(attributePaths = "user")
+	List<Reservation> findBySlotIdOrderByCreatedAtAscIdAsc(Long slotId);
 
 	int countBySlotIdAndStatus(Long slotId, ReservationStatus status);
 
