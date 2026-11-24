@@ -47,5 +47,26 @@ dependencies {
 }
 
 tasks.named('test') {
-	useJUnitPlatform()
+	useJUnitPlatform {
+		excludeTags 'concurrency'
+	}
+}
+
+tasks.register('concurrencyTest', Test) {
+	description = '동시성 시나리오를 재현하고 불변식 위반 건수를 build/concurrency-report.md에 기록한다'
+	group = 'verification'
+	testClassesDirs = sourceSets.test.output.classesDirs
+	classpath = sourceSets.test.runtimeClasspath
+	useJUnitPlatform {
+		includeTags 'concurrency'
+	}
+	testLogging {
+		showStandardStreams = true
+		events 'passed', 'failed'
+		exceptionFormat 'short'
+	}
+	doFirst {
+		layout.buildDirectory.file('concurrency-report.md').get().asFile.delete()
+	}
+	shouldRunAfter tasks.named('test')
 }
