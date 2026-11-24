@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.waitlist.global.security.AuthUser;
+import com.example.waitlist.reservation.ReservationDtos.ReservationResponse;
 import com.example.waitlist.waitlist.WaitlistDtos.WaitlistResponse;
 
 import lombok.RequiredArgsConstructor;
@@ -32,6 +33,17 @@ public class WaitlistController {
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void cancel(@PathVariable Long id, @AuthenticationPrincipal AuthUser user) {
 		waitlistService.cancel(id, user.id());
+	}
+
+	@PostMapping("/waitlist/{id}/accept")
+	public ReservationResponse accept(@PathVariable Long id, @AuthenticationPrincipal AuthUser user) {
+		return waitlistService.accept(id, user.id());
+	}
+
+	@PostMapping("/waitlist/{id}/decline")
+	@ResponseStatus(HttpStatus.NO_CONTENT)
+	public void decline(@PathVariable Long id, @AuthenticationPrincipal AuthUser user) {
+		waitlistService.decline(id, user.id());
 	}
 
 	@GetMapping("/me/waitlist")
