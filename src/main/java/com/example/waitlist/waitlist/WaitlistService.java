@@ -9,6 +9,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.waitlist.global.error.BusinessException;
 import com.example.waitlist.global.error.ErrorCode;
 import com.example.waitlist.global.time.DbTime;
+import com.example.waitlist.notification.NotificationType;
+import com.example.waitlist.notification.Notifier;
 import com.example.waitlist.reservation.Reservation;
 import com.example.waitlist.reservation.ReservationDtos.ReservationResponse;
 import com.example.waitlist.reservation.ReservationRepository;
@@ -27,6 +29,7 @@ public class WaitlistService {
 	private final WaitlistEntryRepository waitlistEntryRepository;
 	private final ReservationRepository reservationRepository;
 	private final SuccessionService successionService;
+	private final Notifier notifier;
 	private final SlotService slotService;
 	private final SlotOccupancy occupancy;
 	private final UserRepository userRepository;
@@ -92,6 +95,7 @@ public class WaitlistService {
 		entry.resolve(WaitlistStatus.ACCEPTED, now);
 		Reservation reservation = reservationRepository
 				.save(Reservation.confirm(entry.getSlot(), entry.getUser(), entry.getId(), now));
+		notifier.notify(userId, NotificationType.RESERVATION_CONFIRMED, entry.getSlot().getId(), entry.getId());
 		return ReservationResponse.from(reservation);
 	}
 

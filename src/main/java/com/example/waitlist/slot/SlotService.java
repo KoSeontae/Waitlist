@@ -73,7 +73,8 @@ public class SlotService {
 		int occupied = occupancy.occupied(slot.getId());
 		int waiting = occupancy.waiting(slot.getId());
 		return new SlotResponse(slot.getId(), slot.getOwner().getId(), slot.getTitle(), slot.getStartAt(),
-				slot.getCapacity(), slot.isBlocked() ? "BLOCKED" : "OPEN", occupied,
+				slot.getCapacity(), slot.isBlocked() ? "BLOCKED" : "OPEN", slot.isBlockedManual(),
+				slot.isBlockedOverCapacity(), occupied,
 				Math.max(slot.getCapacity() - occupied, 0), waiting, slot.getAcceptLimitMin(),
 				slot.getWaitlistLimit(), slot.getCancelBeforeMin(), slot.getOfferStopBeforeMin());
 	}

@@ -81,6 +81,31 @@ public class Slot {
 		return blockedManual || blockedOverCapacity;
 	}
 
+	public void block() {
+		this.blockedManual = true;
+	}
+
+	public void unblock() {
+		this.blockedManual = false;
+	}
+
+	public void blockForOverCapacity() {
+		this.blockedOverCapacity = true;
+	}
+
+	public void releaseOverCapacity() {
+		this.blockedOverCapacity = false;
+	}
+
+	public void updateSettings(int capacity, int acceptLimitMin, int waitlistLimit, int cancelBeforeMin,
+			int offerStopBeforeMin) {
+		this.capacity = capacity;
+		this.acceptLimitMin = acceptLimitMin;
+		this.waitlistLimit = waitlistLimit;
+		this.cancelBeforeMin = cancelBeforeMin;
+		this.offerStopBeforeMin = offerStopBeforeMin;
+	}
+
 	public Instant offerStopAt() {
 		return startAt.minus(offerStopBeforeMin, ChronoUnit.MINUTES);
 	}

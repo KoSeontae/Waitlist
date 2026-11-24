@@ -14,6 +14,7 @@ public enum ErrorCode {
 	SLOT_NOT_FOUND(HttpStatus.NOT_FOUND, "회차를 찾을 수 없습니다"),
 	RESERVATION_NOT_FOUND(HttpStatus.NOT_FOUND, "예약을 찾을 수 없습니다"),
 	WAITLIST_NOT_FOUND(HttpStatus.NOT_FOUND, "대기를 찾을 수 없습니다"),
+	NOTIFICATION_NOT_FOUND(HttpStatus.NOT_FOUND, "알림을 찾을 수 없습니다"),
 	EMAIL_DUPLICATED(HttpStatus.CONFLICT, "이미 사용 중인 이메일입니다"),
 	SLOT_BLOCKED(HttpStatus.CONFLICT, "일시 중단된 회차입니다"),
 	APPLICATION_CLOSED(HttpStatus.CONFLICT, "신청이 마감된 회차입니다"),
