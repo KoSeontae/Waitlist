@@ -11,6 +11,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.support.TransactionTemplate;
 
 import com.example.waitlist.global.time.DbTime;
+import com.example.waitlist.notification.Notifier;
+import com.example.waitlist.notification.NotificationType;
 import com.example.waitlist.slot.Slot;
 import com.example.waitlist.slot.SlotOccupancy;
 import com.example.waitlist.slot.SlotService;
@@ -27,15 +29,20 @@ public class SuccessionService {
 	private final SlotOccupancy occupancy;
 	private final WaitlistEntryRepository waitlistEntryRepository;
 	private final DbTime dbTime;
+	private final Notifier notifier;
 	private final TransactionTemplate transactionTemplate;
 
 	/** 빈자리 수만큼 순번대로 기회를 제공한다. 호출자의 트랜잭션 안에서 실행해야 한다. */
 	public int fillVacancies(Slot slot) {
 		Instant now = dbTime.now();
+		int occupied = occupancy.occupied(slot.getId());
+		if (slot.isBlockedOverCapacity() && occupied <= slot.getCapacity()) {
+			slot.releaseOverCapacity();
+		}
 		if (slot.isBlocked() || !now.isBefore(slot.offerStopAt())) {
 			return 0;
 		}
-		int vacancies = slot.getCapacity() - occupancy.occupied(slot.getId());
+		int vacancies = slot.getCapacity() - occupied;
 		if (vacancies <= 0) {
 			return 0;
 		}
@@ -43,7 +50,10 @@ public class SuccessionService {
 		List<WaitlistEntry> next = waitlistEntryRepository.findBySlotIdAndStatusOrderByCreatedAtAscIdAsc(
 				slot.getId(), WaitlistStatus.WAITING, PageRequest.of(0, vacancies));
 		Instant expiresAt = earlier(now.plus(slot.getAcceptLimitMin(), ChronoUnit.MINUTES), slot.offerStopAt());
-		next.forEach(entry -> entry.offer(now, expiresAt));
+		next.forEach(entry -> {
+			entry.offer(now, expiresAt);
+			notifier.notify(entry.getUser().getId(), NotificationType.OFFER_GRANTED, slot.getId(), entry.getId());
+		});
 		return next.size();
 	}
 
@@ -72,11 +82,16 @@ public class SuccessionService {
 
 		waitlistEntryRepository
 				.findBySlotIdAndStatusAndExpiresAtLessThanEqual(slotId, WaitlistStatus.OFFERED, now)
-				.forEach(entry -> entry.resolve(WaitlistStatus.EXPIRED, now));
+				.forEach(entry -> {
+					entry.resolve(WaitlistStatus.EXPIRED, now);
+					notifier.notify(entry.getUser().getId(), NotificationType.OFFER_EXPIRED, slotId, entry.getId());
+				});
 
 		if (!now.isBefore(slot.offerStopAt())) {
-			waitlistEntryRepository.findBySlotIdAndStatus(slotId, WaitlistStatus.WAITING)
-					.forEach(entry -> entry.resolve(WaitlistStatus.EXPIRED, now));
+			waitlistEntryRepository.findBySlotIdAndStatus(slotId, WaitlistStatus.WAITING).forEach(entry -> {
+				entry.resolve(WaitlistStatus.EXPIRED, now);
+				notifier.notify(entry.getUser().getId(), NotificationType.SUCCESSION_CLOSED, slotId, entry.getId());
+			});
 		}
 		fillVacancies(slot);
 	}

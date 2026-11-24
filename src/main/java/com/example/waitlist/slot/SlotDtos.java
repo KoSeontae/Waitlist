@@ -23,6 +23,14 @@ public final class SlotDtos {
 			@Min(0) Integer offerStopBeforeMin) {
 	}
 
+	public record SlotUpdateRequest(
+			@Min(1) Integer capacity,
+			@Min(5) @Max(1440) Integer acceptLimitMin,
+			@Min(0) Integer waitlistLimit,
+			@Min(0) Integer cancelBeforeMin,
+			@Min(0) Integer offerStopBeforeMin) {
+	}
+
 	public record SlotResponse(
 			Long id,
 			Long ownerId,
@@ -30,6 +38,8 @@ public final class SlotDtos {
 			Instant startAt,
 			int capacity,
 			String status,
+			boolean blockedManual,
+			boolean blockedOverCapacity,
 			int occupied,
 			int remaining,
 			int waitingCount,

@@ -69,6 +69,10 @@ public class WaitlistEntry {
 		this.expiresAt = expiresAt;
 	}
 
+	public void shortenExpiry(Instant newExpiresAt) {
+		this.expiresAt = newExpiresAt;
+	}
+
 	public void resolve(WaitlistStatus terminalStatus, Instant now) {
 		this.status = terminalStatus;
 		this.resolvedAt = now;

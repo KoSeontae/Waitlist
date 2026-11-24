@@ -9,6 +9,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.example.waitlist.global.error.BusinessException;
 import com.example.waitlist.global.error.ErrorCode;
 import com.example.waitlist.global.time.DbTime;
+import com.example.waitlist.notification.NotificationType;
+import com.example.waitlist.notification.Notifier;
 import com.example.waitlist.reservation.ReservationDtos.ReservationResponse;
 import com.example.waitlist.slot.Slot;
 import com.example.waitlist.slot.SlotOccupancy;
@@ -26,6 +28,7 @@ public class ReservationService {
 	private final SlotService slotService;
 	private final SlotOccupancy occupancy;
 	private final SuccessionService successionService;
+	private final Notifier notifier;
 	private final UserRepository userRepository;
 	private final DbTime dbTime;
 
@@ -68,6 +71,24 @@ public class ReservationService {
 		}
 		reservation.cancel(CanceledBy.USER, now);
 		successionService.fillVacancies(reservation.getSlot());
+	}
+
+	@Transactional
+	public void cancelByOperator(Long reservationId, Long operatorId) {
+		Reservation reservation = reservationRepository.findById(reservationId)
+				.orElseThrow(() -> new BusinessException(ErrorCode.RESERVATION_NOT_FOUND));
+		Slot slot = reservation.getSlot();
+		if (!slot.getOwner().getId().equals(operatorId)) {
+			throw new BusinessException(ErrorCode.FORBIDDEN);
+		}
+		if (reservation.getStatus() == ReservationStatus.CANCELED) {
+			return;
+		}
+
+		reservation.cancel(CanceledBy.OPERATOR, dbTime.now());
+		notifier.notify(reservation.getUser().getId(), NotificationType.RESERVATION_CANCELED_BY_OPERATOR,
+				slot.getId(), null);
+		successionService.fillVacancies(slot);
 	}
 
 	@Transactional(readOnly = true)
