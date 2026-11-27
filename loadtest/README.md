@@ -17,6 +17,17 @@ loadtest/run.sh reserve spread 10
 loadtest/explore.sh reserve hot
 ```
 
+기준선 측정(13개 조건을 3번 반복, 약 70분)은 다음 스크립트로 실행한다. 반복 횟수는 `REPEAT`로 바꾼다.
+
+```bash
+loadtest/baseline.sh
+```
+
+측정 결과:
+
+- [기준선 (2026-11-27)](results/2026-11-27-baseline.md)
+- [예약 신청 탐색 (2026-11-27)](results/2026-11-27-reserve-exploration.md)
+
 `run.sh`는 1회 실행마다 jar 빌드, 앱 기동(18080 포트, 힙 1GB), 시드, 워밍업, 측정, 불변식 확인, 앱 종료를 수행한다. 결과는 `build/loadtest/results.md`에 한 줄씩 쌓이고, 앱 로그는 `build/loadtest/app.log`에 남는다(실행마다 덮어씀).
 
 | 인자 | 값 |
