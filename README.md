@@ -34,7 +34,7 @@ docker compose up -d
 
 | 변수 | 기본값 | 설명 |
 |---|---|---|
-| `DB_URL` | `jdbc:postgresql://localhost:5432/waitlist` | DB 주소 |
+| `DB_URL` | `jdbc:postgresql://localhost:5433/waitlist` | DB 주소 |
 | `DB_USERNAME` / `DB_PASSWORD` | `slot` / `slot` | DB 계정 |
 | `JWT_SECRET` | 로컬 개발용 값 | 배포 시 반드시 변경 |
 
@@ -45,6 +45,14 @@ Docker가 필요하다(Testcontainers가 PostgreSQL 컨테이너를 띄운다).
 ```bash
 ./gradlew test
 ```
+
+동시성 시나리오 재현 테스트는 따로 실행한다. 결과는 `build/concurrency-report.md`에 기록된다. 동시성 제어를 도입하기 전까지는 실패하는 것이 정상이다.
+
+```bash
+./gradlew concurrencyTest
+```
+
+부하 테스트는 [loadtest/README.md](loadtest/README.md)를 따른다.
 
 ## 구조
 
